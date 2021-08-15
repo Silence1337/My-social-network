@@ -3,6 +3,13 @@
 
 <@c.page>
 Registration page
-${message}
+<div>
+<#if message?has_content>
+    ${message}
+</#if>
+</div>
 <@l.login "/registration" />
+<div>
+<a href="/login">Go back to login page</a>
+</div>
 </@c.page>

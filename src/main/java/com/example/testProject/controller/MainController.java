@@ -12,8 +12,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 
 @Controller
@@ -29,15 +27,18 @@ public class MainController {
     }
 
     @GetMapping("/main")
-    public String main(@RequestParam(required = false, defaultValue = "") String filter, Model model) {
+    public String main(@AuthenticationPrincipal User user,
+                       @RequestParam(required = false, defaultValue = "") String filter,
+                       Model model) {
         Iterable<Message> messages = messageRepo.findAll();
 
         if (filter != null && !filter.isEmpty()) {
             messages = messageRepo.findByTag(filter);
         } else {
-            messages = messageRepo.findAll();
+            messages = messageRepo.findAllByOrderByIdAsc();
         }
 
+        model.addAttribute("isAdmin", user.isAdmin());
         model.addAttribute("messages", messages);
         model.addAttribute("filter", filter);
 
@@ -49,13 +50,15 @@ public class MainController {
             @AuthenticationPrincipal User user,
             @RequestParam String text,
             @RequestParam String tag,
-            Map<String, Object> model) {
+            Model model) {
         Message message = new Message(text, tag, user);
 
         messageRepo.save(message);
 
-        Iterable<Message> messages = messageRepo.findAll();
-        model.put("messages", messages);
+        Iterable<Message> messages = messageRepo.findAllByOrderByIdAsc();
+        model.addAttribute("isAdmin", user.isAdmin());
+        model.addAttribute("messages", messages);
+        model.addAttribute("filter", "");
 
         return "main";
     }
